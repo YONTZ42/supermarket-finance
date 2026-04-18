@@ -1,0 +1,18 @@
+
+> supermarket-finance@0.1.0 dev
+> next dev
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.3.4:3000
+- Environments: .env
+✓ Ready in 797ms
+
+ POST /api/finance/import-excel 500 in 1776ms (next.js: 1233ms, application-code: 543ms)
+ POST /api/finance/import-excel 500 in 481ms (next.js: 77ms, application-code: 404ms)
+ POST /api/finance/import-excel 500 in 43s (next.js: 98ms, application-code: 43s)
+ POST /api/finance/import-excel 200 in 52s (next.js: 72ms, application-code: 52s)
+ POST /api/finance/import-excel 200 in 74s (next.js: 4ms, application-code: 74s)
+ POST /api/finance/import-excel 200 in 72s (next.js: 3ms, application-code: 72s)
+ POST /api/finance/import-excel 200 in 74s (next.js: 4ms, application-code: 74s)
+[?25h

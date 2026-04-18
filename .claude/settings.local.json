@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm install:*)",
+      "Bash(npx next:*)",
+      "Bash(node:*)",
+      "Bash(xargs grep:*)",
+      "Bash(npm run:*)",
+      "Bash(echo \"Server starting in background \\(PID: $!\\)\")",
+      "Bash(curl -s -X POST http://localhost:3000/api/finance/import-excel -F \"file=@public/default-data/import-2022.xlsx\" -F \"fiscalYear=2022\")",
+      "Bash(python -m json.tool)",
+      "Bash(curl -s -X POST http://localhost:3000/api/finance/import-excel -F \"file=@public/default-data/import-2023.xlsx\" -F \"fiscalYear=2023\")",
+      "Bash(curl -s -X POST http://localhost:3000/api/finance/import-excel -F \"file=@public/default-data/import-2024.xlsx\" -F \"fiscalYear=2024\")"
+    ]
+  }
+}

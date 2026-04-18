@@ -1,0 +1,196 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+
+}
+
+enum InputMode {
+  CUMULATIVE
+  PERIODIC
+}
+
+enum CategoryKind {
+  SALES
+  EXPENSE
+}
+
+enum RecordSourceType {
+  EXCEL_SEED
+  MANUAL_EDIT
+  IMPORT
+}
+
+enum Half {
+  H1
+  H2
+}
+
+model Store {
+  id          String                  @id @default(cuid())
+  code        String                  @unique
+  name        String
+  isActive    Boolean                 @default(true)
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  reportingProfile StoreReportingProfile?
+  categories       Category[]
+  rawRecords       RawRecord[]
+  normalizedRecords NormalizedRecord[]
+  summaryRecords   SummaryRecord[]
+
+  @@map("stores")
+}
+
+model StoreReportingProfile {
+  id                   String    @id @default(cuid())
+  storeId              String    @unique
+  inputMode            InputMode
+  fiscalYearStartMonth Int       @default(1)
+
+  // ex: [3,6,9,12] or [6,12]
+  reportMonths         Int[]
+
+  // 柔軟性のためJSONで保持
+  // ex:
+  // [
+  //   {"code":"Q1","reportMonth":3,"coveredMonths":[1,2,3],"half":"H1","displayOrder":1},
+  //   {"code":"Q2","reportMonth":6,"coveredMonths":[4,5,6],"half":"H1","displayOrder":2}
+  // ]
+  periodDefinitions    Json
+
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  store                Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@map("store_reporting_profiles")
+}
+
+model Category {
+  id           String       @id @default(cuid())
+  storeId      String
+  code         String
+  name         String
+  kind         CategoryKind
+  displayOrder Int          @default(0)
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  store             Store             @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  rawRecords        RawRecord[]
+  normalizedRecords NormalizedRecord[]
+
+  @@unique([storeId, code])
+  @@unique([storeId, name])
+  @@map("categories")
+}
+
+model RawRecord {
+  id                String           @id @default(cuid())
+  storeId           String
+  fiscalYear        Int
+  categoryId        String
+
+  reportMonth       Int
+  periodCode        String
+  inputModeSnapshot InputMode
+
+  rawAmount         Decimal          @db.Decimal(14, 2)
+  sourceType        RecordSourceType
+  sourceFileName    String?
+
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  store             Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  category          Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  normalizedLinks   NormalizedRecordRawRecord[]
+
+  @@unique([storeId, fiscalYear, categoryId, reportMonth])
+  @@index([storeId, fiscalYear])
+  @@index([storeId, fiscalYear, reportMonth])
+  @@map("raw_records")
+}
+
+model NormalizedRecord {
+  id                   String           @id @default(cuid())
+  storeId              String
+  fiscalYear           Int
+  categoryId           String
+
+  normalizedPeriodCode String
+  half                 Half
+  coveredMonths        Int[]
+
+  amount               Decimal          @db.Decimal(14, 2)
+
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  store                Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  category             Category         @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  rawLinks             NormalizedRecordRawRecord[]
+
+  @@unique([storeId, fiscalYear, categoryId, normalizedPeriodCode])
+  @@index([storeId, fiscalYear, half])
+  @@index([storeId, fiscalYear, normalizedPeriodCode])
+  @@map("normalized_records")
+}
+
+model NormalizedRecordRawRecord {
+  normalizedRecordId String
+  rawRecordId        String
+
+  normalizedRecord   NormalizedRecord @relation(fields: [normalizedRecordId], references: [id], onDelete: Cascade)
+  rawRecord          RawRecord        @relation(fields: [rawRecordId], references: [id], onDelete: Cascade)
+
+  @@id([normalizedRecordId, rawRecordId])
+  @@map("normalized_record_raw_records")
+}
+
+model SummaryRecord {
+  id           String    @id @default(cuid())
+  storeId      String
+  fiscalYear   Int
+  half         Half
+
+  salesTotal   Decimal   @db.Decimal(14, 2)
+  expenseTotal Decimal   @db.Decimal(14, 2)
+  profit       Decimal   @db.Decimal(14, 2)
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  store        Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+
+  @@unique([storeId, fiscalYear, half])
+  @@index([fiscalYear, half])
+  @@map("summary_records")
+}
+
+model AuditLog {
+  id             String    @id @default(cuid())
+  targetType      String   // "raw_record"
+  targetId        String
+
+  storeId         String?
+  fiscalYear      Int?
+  categoryId      String?
+  reportMonth     Int?
+
+  action          String   // "CREATE" | "UPDATE" | "DELETE" | "RECALCULATE"
+  beforeValue     Json?
+  afterValue      Json?
+  reason          String?
+
+  createdAt       DateTime @default(now())
+
+  @@index([targetType, targetId])
+  @@index([storeId, fiscalYear])
+  @@map("audit_logs")
+}

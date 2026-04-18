@@ -1,0 +1,53 @@
+
+バックエンド実装を進めてください。目的は、既存のフロントエンドをモックから実 API 接続へ差し替えられる状態にすることです。
+
+前提:
+- docs/requirements.md, architecture.md, data-model.md, normalization-rules.md, api-design.md, directory-files-explanation.md に従ってください
+- route handler にビジネスロジックを書かず、src/server/modules/** の service を呼ぶ構成を守ってください
+- raw_records → normalized_records → summary_records の責務分離を崩さないでください
+- store 名で分岐せず、inputMode / periodDefinitions ベースで処理してください
+- 現状フロントエンドではモックデータで実装中、それを実データで行えるようにする
+
+優先実装:
+1. GET /api/stores
+- app/api/stores/route.ts
+- src/server/modules/store-config/repository.ts
+- src/server/modules/store-config/service.ts
+- フロント接続上、id, code, name, inputMode, reportMonths, periodDefinitions, categories.sales, categories.expense を返してください
+
+2. GET /api/finance/raw-records?storeId&fiscalYear
+- app/api/finance/raw-records/route.ts
+- src/server/modules/finance/repository.ts
+- 指定店舗・年度の既存入力値を返してください
+- data-entry 画面で初期表示に使います
+
+3. POST /api/finance/raw-records
+- app/api/finance/raw-records/route.ts
+- src/server/modules/finance/services/upsert-raw-record.ts
+- src/server/modules/finance/services/recalculate-store-year.ts
+- src/server/db/transactions.ts
+- 保存後に normalized / summary を再計算し、audit も記録してください
+
+4. GET /api/finance/summary
+- app/api/finance/summary/route.ts
+- src/server/modules/finance/services/get-summary.ts
+- src/server/modules/finance/repository.ts
+- fiscalYear, storeId, half で絞り込み可能にしてください
+- storeId, storeName, fiscalYear, half, salesTotal, expenseTotal, profit を返してください
+
+5. 正規化・集計ロジック
+- src/server/modules/finance/normalizers/normalize-raw-records.ts
+- src/server/modules/finance/normalizers/normalize-cumulative.ts
+- src/server/modules/finance/normalizers/normalize-periodic.ts
+- src/server/modules/finance/normalizers/build-summary.ts
+- docs/normalization-rules.md どおりに実装してください
+
+補足:
+- import-excel 系は後回しで構いません。起動時に Excel 由来データが見える要件は seed で先に満たせます
+- フロントは現状 `useStoreConfigQuery`, `useRawRecordsMutation`, `useSummaryQuery` を API に差し替えるだけで接続したいので、上記 4 API を docs どおり安定させることを最優先にしてください
+- 可能なら DTO に storeCode も含めてください。必須ではありませんがフロント変換が減ります
+- 設計書にない、またはフロントエンドで解決できる部分であれば、提案をテキストにまとめて提示してください。
+
+確認したいこと:
+- 実装後、各 route の request/response shape を docs/api-design.md と照合してください
+- 可能なら lint/build が通るところまでお願いします

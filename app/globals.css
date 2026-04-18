@@ -1,26 +1,165 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --surface: #f5f4ed;
+  --surface-elevated: rgba(255, 255, 255, 0.82);
+  --surface-strong: #ffffff;
+  --ink: #18222f;
+  --muted: #5f6d7b;
+  --line: rgba(24, 34, 47, 0.11);
+  --accent: #0e7490;
+  --accent-strong: #155e75;
+  --accent-soft: rgba(14, 116, 144, 0.12);
+  --success-soft: rgba(21, 128, 61, 0.12);
+  --warning-soft: rgba(217, 119, 6, 0.14);
+  --danger-soft: rgba(220, 38, 38, 0.1);
+  --shadow: 0 24px 60px rgba(24, 34, 47, 0.09);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-background: var(--surface);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--surface);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body), sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  background: var(--surface-elevated);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(18px);
+}
+
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.primary-action,
+.secondary-action {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 600;
+  transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease;
+}
+
+.primary-action {
+  background: var(--ink);
+  color: white;
+}
+
+.primary-action:hover,
+.secondary-action:hover {
+  transform: translateY(-1px);
+}
+
+.secondary-action {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.data-grid-shell {
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.88);
+}
+
+.financial-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.financial-table th,
+.financial-table td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.875rem 1rem;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.financial-table th {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.financial-input {
+  width: 100%;
+  border: 1px solid transparent;
+  background: rgba(14, 116, 144, 0.05);
+  border-radius: 0.9rem;
+  padding: 0.75rem 0.9rem;
+  font: inherit;
+  color: var(--ink);
+}
+
+.financial-input:focus {
+  outline: none;
+  border-color: rgba(14, 116, 144, 0.4);
+  background: white;
+}
+
+.select-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.74);
+  padding: 0.55rem 0.9rem;
+  font-size: 0.95rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.status-good {
+  background: var(--success-soft);
+  color: #166534;
+}
+
+.status-warn {
+  background: var(--warning-soft);
+  color: #9a3412;
+}
+
+.status-muted {
+  background: rgba(100, 116, 139, 0.12);
+  color: #475569;
 }
