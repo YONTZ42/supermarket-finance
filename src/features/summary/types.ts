@@ -31,7 +31,7 @@ export type SummaryMainBarDatum = {
   storeName: string;
   periodKey: string;
   periodLabel: string;
-  metric: MetricType | "sales" | "expense";
+  metric: MetricType | "sales" | "expense" | "profit";
   label: string;
   value: number;
   color: string;
@@ -55,4 +55,31 @@ export type SummaryMainComparisonState = {
   breakdownMode: SummaryBreakdownMode;
   visiblePeriods: number;
   selection: SummaryMainSelection | null;
+};
+
+// ---------- カテゴリ内訳チャート用型 ----------
+
+export type CategorySegment = {
+  categoryCode: string;
+  categoryName: string;
+  amount: number;
+  color: string;
+};
+
+export type StoreCategoryBar = {
+  storeCode: string;
+  storeName: string;
+  periodKey: string;
+  periodLabel: string;
+  /** Y スケールの合計値 */
+  totalAmount: number;
+  /** tooltip の合計ラベル（省略時: "合計"） */
+  totalLabel?: string;
+  segments: CategorySegment[];
+};
+
+export type CategoryPeriodGroup = {
+  periodKey: string;
+  periodLabel: string;
+  stores: StoreCategoryBar[];
 };

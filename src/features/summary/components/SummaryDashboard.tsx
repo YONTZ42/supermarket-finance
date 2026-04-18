@@ -6,6 +6,7 @@ import { SummaryFilterPanel } from "@/src/features/filters/components/SummaryFil
 import { createDefaultSummaryFilter } from "@/src/features/filters/lib/filter-schema";
 import { buildSummaryDetailRows } from "@/src/features/summary/lib/build-summary-chart-data";
 import { useSummaryQuery } from "@/src/features/summary/hooks/useSummaryQuery";
+import { useNormalizedQuery } from "@/src/features/summary/hooks/useNormalizedQuery";
 import { KpiCards } from "@/src/features/summary/components/KpiCards";
 import { SummaryTable } from "@/src/features/summary/components/SummaryTable";
 import { MainComparisonArea } from "@/src/features/summary/components/MainComparisonArea";
@@ -23,6 +24,7 @@ export function SummaryDashboard({ initialFiscalYear }: Props) {
   const [selection, setSelection] = useState<SummaryMainSelection | null>(null);
   const [tableMode, setTableMode] = useState<"global" | "selection">("global");
   const query = useSummaryQuery(filter);
+  const normalizedQuery = useNormalizedQuery(filter);
 
   const cards: KpiCardData[] = (() => {
     const salesTotal = query.records.reduce((sum, r) => sum + r.salesTotal, 0);
@@ -69,44 +71,38 @@ export function SummaryDashboard({ initialFiscalYear }: Props) {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page header */}
-      <section className="panel rounded-[2rem] p-6">
-        <p className="eyebrow">Summary</p>
-        <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h1 className="text-3xl font-semibold tracking-tight">半期サマリ</h1>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)]">
-              店舗差異を吸収した後の共通フォーマットで、売上・経費・利益を比較します。
-              KPI・比較グラフ・詳細表をフィルタで一括同期しています。
-            </p>
+    <div className="space-y-4">
+      {/* Compact top bar: title + status + filter */}
+      <section className="panel rounded-[1.75rem] px-5 py-3">
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 justify-between">
+          <div className="flex items-center gap-3 shrink-0">
+            <h1 className="text-base font-semibold">半期サマリ</h1>
+            <div
+              className={`status-badge ${
+                query.error ? "status-warn" : query.isLoading ? "status-muted" : "status-good"
+              }`}
+            >
+              {query.error ? "api error" : query.isLoading ? "loading..." : "api connected"}
+            </div>
           </div>
-          <div
-            className={`status-badge ${
-              query.error ? "status-warn" : query.isLoading ? "status-muted" : "status-good"
-            }`}
-          >
-            {query.error ? "api error" : query.isLoading ? "loading..." : "api connected"}
-          </div>
+          <SummaryFilterPanel
+            filter={filter}
+            fiscalYears={
+              query.availableFiscalYears.length > 0
+                ? query.availableFiscalYears
+                : [initialFiscalYear]
+            }
+            onChange={setFilter}
+            bare
+          />
         </div>
       </section>
 
       {query.error && (
-        <section className="panel rounded-[1.75rem] p-5 text-sm text-rose-700 bg-rose-50/60">
+        <section className="panel rounded-[1.5rem] px-5 py-3 text-sm text-rose-700 bg-rose-50/60">
           {query.error}
         </section>
       )}
-
-      {/* Global filter */}
-      <SummaryFilterPanel
-        filter={filter}
-        fiscalYears={
-          query.availableFiscalYears.length > 0
-            ? query.availableFiscalYears
-            : [initialFiscalYear]
-        }
-        onChange={setFilter}
-      />
 
       {/* KPI cards */}
       <KpiCards cards={cards} />
@@ -114,6 +110,8 @@ export function SummaryDashboard({ initialFiscalYear }: Props) {
       {/* Main comparison */}
       <MainComparisonArea
         records={query.records}
+        normalizedRecords={normalizedQuery.records}
+        normalizedLoading={normalizedQuery.isLoading}
         availableStores={query.availableStores}
         metric={filter.metric}
         onSelect={handleSelect}
@@ -133,13 +131,9 @@ export function SummaryDashboard({ initialFiscalYear }: Props) {
       {/* Detail table */}
       <section className="space-y-3">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <p className="eyebrow">Detail Table</p>
-            <h2 className="mt-1 text-xl font-semibold">詳細一覧</h2>
-          </div>
+          <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wide">詳細一覧</h2>
 
           <div className="flex items-center gap-3">
-            {/* Table mode toggle */}
             <div className="flex rounded-full border border-[var(--line)] overflow-hidden bg-white/70">
               <button
                 type="button"
@@ -170,7 +164,7 @@ export function SummaryDashboard({ initialFiscalYear }: Props) {
         </div>
 
         {tableMode === "selection" && selection && (
-          <p className="text-sm text-[var(--accent-strong)]">
+          <p className="text-xs text-[var(--accent-strong)]">
             {selection.storeCode} · {selection.periodKey} · {selection.label} のデータを表示中
           </p>
         )}

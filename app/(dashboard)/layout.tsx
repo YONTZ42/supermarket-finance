@@ -15,10 +15,10 @@ function NavLink({
   return (
     <Link
       href={href}
-      className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+      className={`rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] focus-visible:ring-offset-2 ${
         active
-          ? "bg-[var(--ink)] text-white"
-          : "border border-[var(--line)] bg-white/80 text-[var(--ink)]"
+          ? "bg-[var(--ink)] !text-white hover:!text-white"
+          : "border border-[var(--line)] bg-white/80 !text-[var(--ink)] hover:bg-white hover:!text-[var(--ink)]"
       }`}
     >
       {label}

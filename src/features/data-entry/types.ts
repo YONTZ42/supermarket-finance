@@ -31,3 +31,8 @@ export type SaveResult = {
   records: RawRecord[];
   message: string;
 };
+
+export type SaveProgress = {
+  current: number;
+  total: number;
+};

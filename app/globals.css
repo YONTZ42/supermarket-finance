@@ -163,3 +163,47 @@ a {
   background: rgba(100, 116, 139, 0.12);
   color: #475569;
 }
+
+@keyframes save-toast-slide {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, -10px, 0) scale(0.96);
+  }
+  12% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  88% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(0, -6px, 0) scale(0.98);
+  }
+}
+
+@keyframes save-toast-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.18);
+    opacity: 1;
+  }
+}
+
+.save-toast-enter {
+  animation: save-toast-slide 2.6s ease forwards;
+}
+
+.save-toast-dot {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 999px;
+  background: #16a34a;
+  box-shadow: 0 0 0 0.4rem rgba(34, 197, 94, 0.14);
+  animation: save-toast-pulse 1s ease-in-out infinite;
+}

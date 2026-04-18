@@ -6,6 +6,7 @@ import { GroupedBarChart } from "@/src/components/charts/visx/GroupedBarChart";
 import { LineChartVisx } from "@/src/components/charts/visx/LineChartVisx";
 import { buildPeriodTimeline } from "@/src/features/summary/lib/build-summary-chart-data";
 import { formatCompactCurrency } from "@/src/lib/format/finance";
+import { getStoreColor, PL_COLORS } from "@/src/lib/constants/chart-colors";
 import type { SummaryRecord, StoreCode, Half } from "@/src/types/domain";
 import type { MetricType } from "@/src/features/filters/types";
 import type { SummaryMainPeriodGroup } from "@/src/features/summary/types";
@@ -31,15 +32,9 @@ const METRIC_LABELS: Record<MetricType, string> = {
 };
 
 const METRIC_COLORS: Record<MetricType, string> = {
-  salesTotal: "#0f766e",
-  expenseTotal: "#b45309",
-  profit: "#2563eb",
-};
-
-const STORE_COLORS: Record<string, string> = {
-  TOKYO: "#2563eb",
-  OSAKA: "#0f766e",
-  NAGOYA: "#b45309",
+  salesTotal: PL_COLORS.sales,
+  expenseTotal: PL_COLORS.expense,
+  profit: PL_COLORS.profit,
 };
 
 function getMetricValue(r: SummaryRecord, metric: MetricType) {
@@ -78,7 +73,7 @@ function buildTimeData(
       metric: card.metric,
       label: METRIC_LABELS[card.metric],
       value: getMetricValue(r, card.metric),
-      color: STORE_COLORS[r.storeCode] ?? "#6366f1",
+      color: getStoreColor(r.storeCode),
     }));
 
     return { periodKey, periodLabel, bars };
@@ -102,7 +97,7 @@ function buildStoreData(records: SummaryRecord[], card: AnalysisCard) {
   return [...storeMap.entries()].map(([code, { name, value }]) => ({
     label: name,
     value,
-    color: STORE_COLORS[code] ?? "#6366f1",
+    color: getStoreColor(code),
   }));
 }
 
@@ -195,8 +190,8 @@ function AnalysisCardView({
                 style={
                   active
                     ? {
-                        background: STORE_COLORS[store.code] ?? "#6366f1",
-                        borderColor: STORE_COLORS[store.code] ?? "#6366f1",
+                        background: getStoreColor(store.code),
+                        borderColor: getStoreColor(store.code),
                         color: "white",
                       }
                     : {
@@ -375,13 +370,7 @@ export function AnalysisCardsArea({ records, availableStores, availableFiscalYea
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
-        <div>
-          <p className="eyebrow">Analysis Cards</p>
-          <h2 className="mt-1 text-xl font-semibold">追加分析エリア</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">
-            任意条件でグラフカードを追加し、仮説の掘り下げに使います。
-          </p>
-        </div>
+        <h2 className="text-sm font-semibold text-[var(--muted)] uppercase tracking-wide">追加分析</h2>
         <button type="button" className="primary-action text-sm" onClick={addCard}>
           + カード追加
         </button>

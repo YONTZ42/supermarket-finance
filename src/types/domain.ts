@@ -43,6 +43,7 @@ export type RawRecord = {
 
 export type NormalizedRecord = {
   storeCode: StoreCode;
+  storeName: string;
   fiscalYear: number;
   categoryCode: string;
   categoryName: string;

@@ -5,6 +5,7 @@ import {
 import type { EntryGridValue } from "@/src/features/data-entry/types";
 import type { StoreConfig } from "@/src/types/domain";
 import { RawRecordGrid } from "@/src/features/data-entry/components/RawRecordGrid";
+import type { SaveProgress } from "@/src/features/data-entry/types";
 
 type Props = {
   store: StoreConfig;
@@ -12,12 +13,27 @@ type Props = {
   onChange: (nextRows: EntryGridValue[]) => void;
   onSubmit: () => void;
   isSaving: boolean;
+  saveProgress: SaveProgress | null;
   onAddItem: (kind: "SALES" | "EXPENSE") => void;
 };
 
-export function RawRecordForm({ store, rows, onChange, onSubmit, isSaving, onAddItem }: Props) {
+export function RawRecordForm({
+  store,
+  rows,
+  onChange,
+  onSubmit,
+  isSaving,
+  saveProgress,
+  onAddItem,
+}: Props) {
   const reportingHints = buildReportingHints(store);
   const modeGuidance = buildEntryModeGuidance(store);
+  const saveLabel =
+    isSaving && saveProgress
+      ? `保存中 ${saveProgress.current}/${saveProgress.total}`
+      : isSaving
+      ? "保存中..."
+      : "入力内容を保存";
 
   return (
     <section className="space-y-5">
@@ -36,7 +52,7 @@ export function RawRecordForm({ store, rows, onChange, onSubmit, isSaving, onAdd
             onClick={onSubmit}
             disabled={isSaving}
           >
-            {isSaving ? "保存中..." : "入力内容を保存"}
+            {saveLabel}
           </button>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">

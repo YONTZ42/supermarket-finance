@@ -5,3 +5,4 @@
 export { recalculateStoreYear } from "./services/recalculate-store-year";
 export { upsertRawRecord, bulkUpsertRawRecords } from "./services/upsert-raw-record";
 export { getSummary } from "./services/get-summary";
+export { getNormalizedSummary } from "./services/get-normalized";

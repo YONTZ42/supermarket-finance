@@ -60,7 +60,7 @@ export function useStoreConfigQuery(storeCode: StoreCode) {
   return {
     store,
     stores,
-    fiscalYears: [2022, 2023, 2024],
+    fiscalYears: [],
     isLoading,
     error,
   };

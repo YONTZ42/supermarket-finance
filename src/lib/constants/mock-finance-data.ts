@@ -170,6 +170,7 @@ function buildNormalizedRecords(stores: StoreConfig[], rawRecords: RawRecord[]) 
 
           normalized.push({
             storeCode: record.storeCode,
+            storeName: store.name,
             fiscalYear: record.fiscalYear,
             categoryCode: record.categoryCode,
             categoryName: categoryDefinition.name,

@@ -69,6 +69,26 @@ export type RawRecordDTO = {
   sourceFileName?: string;
 };
 
+// ---------- normalized record ----------
+
+/** API レスポンス向けの正規化済みレコード DTO（フロント domain.NormalizedRecord に合わせる） */
+export type NormalizedDTO = {
+  storeCode: string;
+  storeName: string;
+  fiscalYear: number;
+  half: "H1" | "H2";
+  categoryCode: string;
+  categoryName: string;
+  kind: "SALES" | "EXPENSE";
+  periodCode: string;
+  amount: number;
+};
+
+/** normalized API の full response */
+export type NormalizedApiResult = {
+  records: NormalizedDTO[];
+};
+
 /** フロントまたは import から受け取る raw record 入力（ID ベース） */
 export type RawRecordInput = {
   storeId: string;

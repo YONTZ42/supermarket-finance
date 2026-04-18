@@ -116,6 +116,33 @@ export async function getSummaryRecords(
   });
 }
 
+/** 正規化済みレコードを store/category 情報込みで取得 */
+export async function getNormalizedRecords(
+  db: DbClient,
+  filter: {
+    storeCode?: string;
+    fiscalYear?: number;
+    half?: "H1" | "H2";
+  },
+) {
+  return db.normalizedRecord.findMany({
+    where: {
+      ...(filter.storeCode && { store: { code: filter.storeCode } }),
+      ...(filter.fiscalYear && { fiscalYear: filter.fiscalYear }),
+      ...(filter.half && { half: filter.half }),
+    },
+    include: {
+      store: { select: { code: true, name: true } },
+      category: { select: { code: true, name: true, kind: true } },
+    },
+    orderBy: [
+      { fiscalYear: "asc" },
+      { half: "asc" },
+      { normalizedPeriodCode: "asc" },
+    ],
+  });
+}
+
 // ---------- meta queries ----------
 
 /** summary_records に存在する年度の一覧を返す */

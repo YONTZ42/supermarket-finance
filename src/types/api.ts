@@ -1,4 +1,4 @@
-import type { RawRecord, StoreConfig, SummaryRecord } from "@/src/types/domain";
+import type { NormalizedRecord, RawRecord, StoreConfig, SummaryRecord } from "@/src/types/domain";
 
 export type SummaryApiResponse = {
   records: SummaryRecord[];
@@ -8,6 +8,10 @@ export type SummaryApiResponse = {
 
 export type StoreConfigApiResponse = {
   stores: StoreConfig[];
+};
+
+export type NormalizedApiResponse = {
+  records: NormalizedRecord[];
 };
 
 export type UpsertRawRecordResponse = {
