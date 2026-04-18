@@ -18,9 +18,14 @@ export function SummaryFilterPanel({ filter, fiscalYears, stores, onChange }: Pr
           <select
             value={filter.fiscalYear}
             onChange={(event) =>
-              onChange({ ...filter, fiscalYear: Number(event.target.value) })
+              onChange({
+                ...filter,
+                fiscalYear:
+                  event.target.value === "ALL" ? "ALL" : Number(event.target.value),
+              })
             }
           >
+            <option value="ALL">全期間</option>
             {fiscalYears.map((fiscalYear) => (
               <option key={fiscalYear} value={fiscalYear}>
                 {fiscalYear}
@@ -111,7 +116,7 @@ export function SummaryFilterPanel({ filter, fiscalYears, stores, onChange }: Pr
         </label>
       </div>
       <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
-        現在はモックデータで表示しています。server 実装後は同じ filter shape を API に渡す前提です。
+        全期間表示では年度をまたいだ推移比較ができます。詳細比較はメイン比較エリアで追加操作します。
       </p>
     </section>
   );

@@ -1,6 +1,13 @@
-import type { SummaryFilter } from "@/src/features/filters/types";
+import type { MetricType, SummaryFilter } from "@/src/features/filters/types";
 import type { ChartPoint, LineChartPoint, StackedChartPoint } from "@/src/types/chart";
 import type { NormalizedRecord, SummaryRecord } from "@/src/types/domain";
+import type {
+  SummaryBreakdownMode,
+  SummaryMainBarDatum,
+  SummaryMainPeriodGroup,
+  SummaryMainSelection,
+  SummaryRow,
+} from "@/src/features/summary/types";
 
 const chartPalette = ["#155e75", "#0f766e", "#b45309", "#2563eb", "#be185d", "#475569"];
 
@@ -103,4 +110,143 @@ export function buildSummaryStackedChartData(
         color: chartPalette[index],
       })),
   }));
+}
+
+function getStoreColor(storeCode: string, offset = 0) {
+  const code = storeCode
+    .split("")
+    .reduce((sum, char) => sum + char.charCodeAt(0), 0);
+
+  return chartPalette[(code + offset) % chartPalette.length];
+}
+
+export function buildPeriodTimeline(records: SummaryRecord[]) {
+  return [...new Set(records.map((record) => `${record.fiscalYear}-${record.half}`))]
+    .sort((left, right) => {
+      const [leftYear, leftHalf] = left.split("-");
+      const [rightYear, rightHalf] = right.split("-");
+      if (Number(leftYear) !== Number(rightYear)) {
+        return Number(leftYear) - Number(rightYear);
+      }
+
+      return leftHalf.localeCompare(rightHalf);
+    })
+    .map((periodKey) => {
+      const [year, half] = periodKey.split("-");
+      return {
+        periodKey,
+        periodLabel: `${year}-${half}`,
+      };
+    });
+}
+
+export function buildMainComparisonChartData(
+  records: SummaryRecord[],
+  options: {
+    selectedStoreCodes: string[];
+    breakdownMode: SummaryBreakdownMode;
+    visiblePeriods: number;
+    metric: MetricType;
+  },
+): SummaryMainPeriodGroup[] {
+  const timeline = buildPeriodTimeline(records);
+  const visibleTimeline = timeline.slice(-options.visiblePeriods);
+  const targetStoreCodes =
+    options.selectedStoreCodes.length > 0
+      ? options.selectedStoreCodes
+      : [...new Set(records.map((record) => record.storeCode))];
+
+  return visibleTimeline.map(({ periodKey, periodLabel }) => {
+    const [year, half] = periodKey.split("-");
+    const periodRecords = records.filter(
+      (record) =>
+        record.fiscalYear === Number(year) &&
+        record.half === half &&
+        targetStoreCodes.includes(record.storeCode),
+    );
+
+    const bars = periodRecords.flatMap((record): SummaryMainBarDatum[] => {
+      if (options.breakdownMode === "pl") {
+        return [
+          {
+            key: `${periodKey}-${record.storeCode}-sales`,
+            storeCode: record.storeCode,
+            storeName: record.storeName,
+            periodKey,
+            periodLabel,
+            metric: "sales",
+            label: "売上",
+            value: record.salesTotal,
+            color: "#0f766e",
+          },
+          {
+            key: `${periodKey}-${record.storeCode}-expense`,
+            storeCode: record.storeCode,
+            storeName: record.storeName,
+            periodKey,
+            periodLabel,
+            metric: "expense",
+            label: "経費",
+            value: record.expenseTotal,
+            color: "#b45309",
+          },
+          {
+            key: `${periodKey}-${record.storeCode}-profit`,
+            storeCode: record.storeCode,
+            storeName: record.storeName,
+            periodKey,
+            periodLabel,
+            metric: "profit",
+            label: "利益",
+            value: record.profit,
+            color: getStoreColor(record.storeCode, 1),
+          },
+        ];
+      }
+
+      return [
+        {
+          key: `${periodKey}-${record.storeCode}-${options.metric}`,
+          storeCode: record.storeCode,
+          storeName: record.storeName,
+          periodKey,
+          periodLabel,
+          metric: options.metric,
+          label: buildMetricLabel(options.metric),
+          value: getMetricValue(record, options.metric),
+          color: getStoreColor(record.storeCode),
+        },
+      ];
+    });
+
+    return {
+      periodKey,
+      periodLabel,
+      bars,
+    };
+  });
+}
+
+export function buildMainComparisonMaxValue(groups: SummaryMainPeriodGroup[]) {
+  return Math.max(
+    ...groups.flatMap((group) => group.bars.map((bar) => bar.value)),
+    1,
+  );
+}
+
+export function buildSummaryDetailRows(
+  rows: SummaryRow[],
+  selection: SummaryMainSelection | null,
+) {
+  if (!selection) {
+    return rows;
+  }
+
+  const [year, half] = selection.periodKey.split("-");
+  return rows.filter(
+    (row) =>
+      row.storeCode === selection.storeCode &&
+      row.fiscalYear === Number(year) &&
+      row.half === half,
+  );
 }

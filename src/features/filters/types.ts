@@ -5,7 +5,7 @@ export type MetricType = "salesTotal" | "expenseTotal" | "profit";
 export type ChartType = "bar" | "line" | "stacked";
 
 export type SummaryFilter = {
-  fiscalYear: number;
+  fiscalYear: number | "ALL";
   storeCode: StoreCode | "ALL";
   half: Half | "ALL";
   metric: MetricType;

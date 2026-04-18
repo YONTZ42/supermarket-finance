@@ -33,7 +33,9 @@ export function useSummaryQuery(filter: SummaryFilter): SummaryQueryResult {
       setError(null);
 
       const query = new URLSearchParams();
-      query.set("fiscalYear", String(filter.fiscalYear));
+      if (filter.fiscalYear !== "ALL") {
+        query.set("fiscalYear", String(filter.fiscalYear));
+      }
 
       if (filter.storeCode !== "ALL") {
         query.set("storeCode", filter.storeCode);
