@@ -5,18 +5,14 @@ import { useState } from "react";
 import { SummaryFilterPanel } from "@/src/features/filters/components/SummaryFilterPanel";
 import { createDefaultSummaryFilter } from "@/src/features/filters/lib/filter-schema";
 import {
-  buildMetricLabel,
-  buildSummaryBarChartData,
-  buildSummaryLineChartData,
-  buildSummaryStackedChartData,
+  buildSummaryDetailRows,
 } from "@/src/features/summary/lib/build-summary-chart-data";
 import { useSummaryQuery } from "@/src/features/summary/hooks/useSummaryQuery";
 import { KpiCards } from "@/src/features/summary/components/KpiCards";
 import { SummaryTable } from "@/src/features/summary/components/SummaryTable";
-import { SummaryBarChart } from "@/src/features/summary/components/charts/SummaryBarChart";
-import { SummaryLineChart } from "@/src/features/summary/components/charts/SummaryLineChart";
-import { SummaryStackedBarChart } from "@/src/features/summary/components/charts/SummaryStackedBarChart";
+import { MainComparisonArea } from "@/src/features/summary/components/MainComparisonArea";
 import type { KpiCardData } from "@/src/features/summary/types";
+import type { SummaryMainSelection } from "@/src/features/summary/types";
 
 type Props = {
   initialFiscalYear: number;
@@ -24,8 +20,8 @@ type Props = {
 
 export function SummaryDashboard({ initialFiscalYear }: Props) {
   const [filter, setFilter] = useState(createDefaultSummaryFilter(initialFiscalYear));
+  const [selection, setSelection] = useState<SummaryMainSelection | null>(null);
   const query = useSummaryQuery(filter);
-  const metricLabel = buildMetricLabel(filter.metric);
 
   const cards: KpiCardData[] = (() => {
     const salesTotal = query.records.reduce((sum, record) => sum + record.salesTotal, 0);
@@ -61,30 +57,7 @@ export function SummaryDashboard({ initialFiscalYear }: Props) {
     ];
   })();
 
-  const chartSection = (() => {
-    switch (filter.chartType) {
-      case "bar":
-        return (
-          <SummaryBarChart
-            data={buildSummaryBarChartData(query.records, filter)}
-            metricLabel={metricLabel}
-          />
-        );
-      case "line":
-        return (
-          <SummaryLineChart
-            data={buildSummaryLineChartData(query.records, filter.metric)}
-            metricLabel={metricLabel}
-          />
-        );
-      case "stacked":
-        return (
-          <SummaryStackedBarChart
-            data={buildSummaryStackedChartData(query.normalizedRecords)}
-          />
-        );
-    }
-  })();
+  const detailRows = buildSummaryDetailRows(query.rows, selection);
 
   return (
     <div className="space-y-6">
@@ -115,25 +88,34 @@ export function SummaryDashboard({ initialFiscalYear }: Props) {
         fiscalYears={
           query.availableFiscalYears.length > 0
             ? query.availableFiscalYears
-            : [filter.fiscalYear]
+            : [initialFiscalYear]
         }
-        stores={query.availableStores}
         onChange={setFilter}
       />
 
       <KpiCards cards={cards} />
 
-      <section className="panel rounded-[1.75rem] p-5">{chartSection}</section>
+      <MainComparisonArea
+        records={query.records}
+        availableStores={query.availableStores}
+        metric={filter.metric}
+        onSelect={setSelection}
+      />
 
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <p className="eyebrow">Tabular View</p>
-            <h2 className="mt-1 text-xl font-semibold">比較一覧</h2>
+            <p className="eyebrow">Detail Table</p>
+            <h2 className="mt-1 text-xl font-semibold">詳細一覧</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              {selection
+                ? `${selection.storeCode} / ${selection.periodKey} / ${selection.label} を表示中`
+                : "現在のグローバル条件に一致するサマリ一覧を表示しています。"}
+            </p>
           </div>
-          <div className="status-badge status-muted">{query.rows.length} rows</div>
+          <div className="status-badge status-muted">{detailRows.length} rows</div>
         </div>
-        <SummaryTable rows={query.rows} />
+        <SummaryTable rows={detailRows} />
       </section>
     </div>
   );

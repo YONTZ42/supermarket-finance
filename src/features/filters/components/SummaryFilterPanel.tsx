@@ -5,11 +5,10 @@ import type { SummaryFilter } from "@/src/features/filters/types";
 type Props = {
   filter: SummaryFilter;
   fiscalYears: number[];
-  stores: Array<{ code: string; name: string }>;
   onChange: (next: SummaryFilter) => void;
 };
 
-export function SummaryFilterPanel({ filter, fiscalYears, stores, onChange }: Props) {
+export function SummaryFilterPanel({ filter, fiscalYears, onChange }: Props) {
   return (
     <section className="panel rounded-[1.75rem] p-5">
       <div className="flex flex-wrap gap-3">
@@ -29,26 +28,6 @@ export function SummaryFilterPanel({ filter, fiscalYears, stores, onChange }: Pr
             {fiscalYears.map((fiscalYear) => (
               <option key={fiscalYear} value={fiscalYear}>
                 {fiscalYear}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="select-chip">
-          <span>店舗</span>
-          <select
-            value={filter.storeCode}
-            onChange={(event) =>
-              onChange({
-                ...filter,
-                storeCode: event.target.value as SummaryFilter["storeCode"],
-              })
-            }
-          >
-            <option value="ALL">全店舗</option>
-            {stores.map((store) => (
-              <option key={store.code} value={store.code}>
-                {store.name}
               </option>
             ))}
           </select>
@@ -82,41 +61,9 @@ export function SummaryFilterPanel({ filter, fiscalYears, stores, onChange }: Pr
           </select>
         </label>
 
-        <label className="select-chip">
-          <span>比較軸</span>
-          <select
-            value={filter.compareBy}
-            onChange={(event) =>
-              onChange({
-                ...filter,
-                compareBy: event.target.value as SummaryFilter["compareBy"],
-              })
-            }
-          >
-            <option value="store">店舗比較</option>
-            <option value="half">半期比較</option>
-          </select>
-        </label>
-
-        <label className="select-chip">
-          <span>チャート</span>
-          <select
-            value={filter.chartType}
-            onChange={(event) =>
-              onChange({
-                ...filter,
-                chartType: event.target.value as SummaryFilter["chartType"],
-              })
-            }
-          >
-            <option value="bar">棒グラフ</option>
-            <option value="line">推移</option>
-            <option value="stacked">積み上げ</option>
-          </select>
-        </label>
       </div>
       <p className="mt-4 text-sm leading-7 text-[var(--muted)]">
-        全期間表示では年度をまたいだ推移比較ができます。詳細比較はメイン比較エリアで追加操作します。
+        グローバル条件は期間と主指標だけを持ち、店舗複数選択や breakdown はメイン比較エリアで操作します。
       </p>
     </section>
   );
