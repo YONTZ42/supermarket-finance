@@ -8,3 +8,5 @@
 - Environments: .env
 ✓ Ready in 820ms
 
+ GET /summary 200 in 464ms (next.js: 212ms, application-code: 252ms)
+ GET /data-entry 200 in 107ms (next.js: 35ms, application-code: 72ms)
