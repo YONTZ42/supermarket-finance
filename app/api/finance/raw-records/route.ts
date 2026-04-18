@@ -68,8 +68,10 @@ export async function GET(request: Request) {
 
     const records = await getRawRecordsWithCodes(prisma, store.id, parsed.data.fiscalYear);
 
+    type RecordElement = Awaited<ReturnType<typeof getRawRecordsWithCodes>>[number];
+    
     return Response.json({
-      records: records.map((r) => ({
+      records: records.map((r:RecordElement) => ({
         storeCode: r.store.code,
         fiscalYear: r.fiscalYear,
         categoryCode: r.category.code,

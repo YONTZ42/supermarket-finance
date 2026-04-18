@@ -5,6 +5,7 @@ export type EntryGridValue = {
   categoryName: string;
   kind: "SALES" | "EXPENSE";
   valuesByPeriod: Record<string, number>;
+  isCustom?: boolean;
 };
 
 export type EntryFormValues = {

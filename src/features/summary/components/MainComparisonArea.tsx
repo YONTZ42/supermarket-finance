@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ComparisonBarChart } from "@/src/components/charts";
 import {
@@ -41,35 +41,34 @@ export function MainComparisonArea({
     visiblePeriods: 6,
     selection: null,
   });
-
-  useEffect(() => {
-    if (availableStores.length > 0 && state.selectedStoreCodes.length === 0) {
-      setState((current) => ({
-        ...current,
-        selectedStoreCodes: availableStores.map((store) => store.code as StoreCode),
-      }));
-    }
-  }, [availableStores, state.selectedStoreCodes.length]);
+  const activeStoreCodes =
+    state.selectedStoreCodes.length > 0
+      ? state.selectedStoreCodes
+      : availableStores.map((store) => store.code as StoreCode);
 
   const chartData = useMemo(
     () =>
       buildMainComparisonChartData(records, {
-        selectedStoreCodes: state.selectedStoreCodes,
+        selectedStoreCodes: activeStoreCodes,
         breakdownMode: state.breakdownMode,
         visiblePeriods: state.visiblePeriods,
         metric,
       }),
-    [records, state, metric],
+    [records, activeStoreCodes, state.breakdownMode, state.visiblePeriods, metric],
   );
 
   const maxValue = buildMainComparisonMaxValue(chartData);
 
   function toggleStore(code: string) {
     setState((current) => {
-      const exists = current.selectedStoreCodes.includes(code as StoreCode);
+      const currentCodes =
+        current.selectedStoreCodes.length > 0
+          ? current.selectedStoreCodes
+          : availableStores.map((store) => store.code as StoreCode);
+      const exists = currentCodes.includes(code as StoreCode);
       const nextStores = exists
-        ? current.selectedStoreCodes.filter((item) => item !== code)
-        : [...current.selectedStoreCodes, code as StoreCode];
+        ? currentCodes.filter((item) => item !== code)
+        : [...currentCodes, code as StoreCode];
 
       return {
         ...current,
@@ -146,7 +145,7 @@ export function MainComparisonArea({
               <p className="text-sm font-semibold">比較対象店舗</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {availableStores.map((store) => {
-                  const active = state.selectedStoreCodes.includes(store.code as StoreCode);
+                  const active = activeStoreCodes.includes(store.code as StoreCode);
 
                   return (
                     <button
@@ -209,6 +208,7 @@ export function MainComparisonArea({
               <div className="mt-3 grid gap-2 text-sm text-[var(--muted)]">
                 <span>指標: {metric}</span>
                 <span>店舗数: {state.selectedStoreCodes.length}</span>
+                <span>実選択店舗数: {activeStoreCodes.length}</span>
                 <span>表示期間数: {chartData.length}</span>
                 <span>breakdown: {state.breakdownMode}</span>
               </div>

@@ -1,6 +1,6 @@
 import type { SummaryFilter } from "@/src/features/filters/types";
 
-export function createDefaultSummaryFilter(fiscalYear: number): SummaryFilter {
+export function createDefaultSummaryFilter(): SummaryFilter {
   return {
     fiscalYear: "ALL",
     storeCode: "ALL",

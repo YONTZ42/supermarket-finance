@@ -12,9 +12,10 @@ type Props = {
   onChange: (nextRows: EntryGridValue[]) => void;
   onSubmit: () => void;
   isSaving: boolean;
+  onAddItem: (kind: "SALES" | "EXPENSE") => void;
 };
 
-export function RawRecordForm({ store, rows, onChange, onSubmit, isSaving }: Props) {
+export function RawRecordForm({ store, rows, onChange, onSubmit, isSaving, onAddItem }: Props) {
   const reportingHints = buildReportingHints(store);
   const modeGuidance = buildEntryModeGuidance(store);
 
@@ -37,6 +38,17 @@ export function RawRecordForm({ store, rows, onChange, onSubmit, isSaving }: Pro
           >
             {isSaving ? "保存中..." : "入力内容を保存"}
           </button>
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button type="button" className="secondary-action" onClick={() => onAddItem("SALES")}>
+            売上項目を追加
+          </button>
+          <button type="button" className="secondary-action" onClick={() => onAddItem("EXPENSE")}>
+            経費項目を追加
+          </button>
+          <span className="text-xs text-[var(--muted)]">
+            追加項目は UI 上の仮項目です。永続化には category 作成 API が必要です。
+          </span>
         </div>
         <div
           className={`mt-5 rounded-[1.5rem] border px-5 py-4 ${

@@ -19,7 +19,7 @@ type Props = {
 };
 
 export function SummaryDashboard({ initialFiscalYear }: Props) {
-  const [filter, setFilter] = useState(createDefaultSummaryFilter(initialFiscalYear));
+  const [filter, setFilter] = useState(createDefaultSummaryFilter());
   const [selection, setSelection] = useState<SummaryMainSelection | null>(null);
   const query = useSummaryQuery(filter);
 

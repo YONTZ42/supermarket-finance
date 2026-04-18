@@ -30,6 +30,7 @@ export function DataEntryWorkspace({ initialStoreCode, initialFiscalYear }: Prop
   const [storeCode, setStoreCode] = useState<StoreCode>(initialStoreCode);
   const [fiscalYear, setFiscalYear] = useState(initialFiscalYear);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [customFiscalYears, setCustomFiscalYears] = useState<number[]>([]);
   const { store, stores, fiscalYears, isLoading: isStoreLoading, error: storeError } =
     useStoreConfigQuery(storeCode);
   const {
@@ -38,10 +39,15 @@ export function DataEntryWorkspace({ initialStoreCode, initialFiscalYear }: Prop
     error: recordsError,
   } = useRawRecordsQuery(storeCode, fiscalYear, refreshKey);
   const [draftRows, setDraftRows] = useState<EntryGridValue[] | null>(null);
+  const [customRows, setCustomRows] = useState<EntryGridValue[]>([]);
   const { save, isSaving, lastSavedAt } = useRawRecordsMutation();
 
   async function handleSave() {
-    await save({ storeCode, fiscalYear, rows });
+    await save({
+      storeCode,
+      fiscalYear,
+      rows: rows.filter((row) => !row.isCustom),
+    });
     setDraftRows(null);
     setRefreshKey((current) => current + 1);
   }
@@ -49,11 +55,45 @@ export function DataEntryWorkspace({ initialStoreCode, initialFiscalYear }: Prop
   function handleStoreChange(nextStoreCode: StoreCode) {
     setStoreCode(nextStoreCode);
     setDraftRows(null);
+    setCustomRows([]);
   }
 
   function handleFiscalYearChange(nextFiscalYear: number) {
     setFiscalYear(nextFiscalYear);
     setDraftRows(null);
+    setCustomRows([]);
+  }
+
+  function handleAddYear(nextFiscalYear: number) {
+    setCustomFiscalYears((current) =>
+      current.includes(nextFiscalYear) ? current : [...current, nextFiscalYear].sort(),
+    );
+    setFiscalYear(nextFiscalYear);
+    setDraftRows(null);
+    setCustomRows([]);
+  }
+
+  function handleAddItem(kind: "SALES" | "EXPENSE") {
+    const categoryName = window.prompt(
+      kind === "SALES" ? "追加する売上項目名を入力してください" : "追加する経費項目名を入力してください",
+    )?.trim();
+
+    if (!categoryName) {
+      return;
+    }
+
+    setCustomRows((current) => [
+      ...current,
+      {
+        categoryCode: `custom_${Date.now()}`,
+        categoryName,
+        kind,
+        isCustom: true,
+        valuesByPeriod: Object.fromEntries(
+          store.periodDefinitions.map((period) => [period.code, 0]),
+        ),
+      },
+    ]);
   }
 
   if (isStoreLoading || !store) {
@@ -64,7 +104,11 @@ export function DataEntryWorkspace({ initialStoreCode, initialFiscalYear }: Prop
     );
   }
 
-  const rows = draftRows ?? buildEntryRows(store, fiscalYear, rawRecords);
+  const selectableFiscalYears = [...new Set([...fiscalYears, ...customFiscalYears, fiscalYear])].sort(
+    (left, right) => left - right,
+  );
+  const baseRows = buildEntryRows(store, fiscalYear, rawRecords);
+  const rows = draftRows ?? [...baseRows, ...customRows];
   const trendData = buildEntryTrendChartData(rows, store);
   const breakdownData = buildCategoryBreakdownChartData(rows);
   const overview = buildEntryOverviewMetrics(store, rows);
@@ -112,9 +156,10 @@ export function DataEntryWorkspace({ initialStoreCode, initialFiscalYear }: Prop
             <p className="eyebrow">Fiscal Year</p>
             <div className="mt-3">
               <FiscalYearSelector
-                fiscalYears={fiscalYears}
+                fiscalYears={selectableFiscalYears}
                 value={fiscalYear}
                 onChange={handleFiscalYearChange}
+                onAddYear={handleAddYear}
               />
             </div>
           </div>
@@ -144,6 +189,7 @@ export function DataEntryWorkspace({ initialStoreCode, initialFiscalYear }: Prop
           onChange={setDraftRows}
           onSubmit={handleSave}
           isSaving={isSaving}
+          onAddItem={handleAddItem}
         />
 
         <div className="space-y-6">

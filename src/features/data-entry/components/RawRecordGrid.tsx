@@ -85,7 +85,10 @@ export function RawRecordGrid({ rows, store, onChange }: Props) {
                       <tr key={row.categoryCode}>
                         <td>
                           <div>
-                            <p className="font-medium">{row.categoryName}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{row.categoryName}</p>
+                              {row.isCustom ? <span className="status-badge status-muted">仮項目</span> : null}
+                            </div>
                             <p className="mt-1 text-xs text-[var(--muted)]">{row.categoryCode}</p>
                           </div>
                         </td>
