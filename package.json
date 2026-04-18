@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "import-excel": "tsx scripts/import-excel.ts",
-    "export-seed-json": "tsx scripts/export-seed-json.ts"
+    "export-seed-json": "tsx scripts/export-seed-json.ts",
+    "postinstall": "prisma generate" 
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
