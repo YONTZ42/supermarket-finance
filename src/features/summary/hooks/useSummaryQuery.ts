@@ -55,9 +55,10 @@ export function useSummaryQuery(filter: SummaryFilter): SummaryQueryResult {
           throw new Error("error" in data && data.error ? data.error : "サマリ取得に失敗しました");
         }
 
-        setRecords(data.records);
-        setAvailableFiscalYears(data.availableFiscalYears);
-        setAvailableStores(data.availableStores);
+        const result = data as SummaryApiResponse;
+        setRecords(result.records);
+        setAvailableFiscalYears(result.availableFiscalYears);
+        setAvailableStores(result.availableStores);
       } catch (caughtError) {
         if (controller.signal.aborted) {
           return;

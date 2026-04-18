@@ -27,12 +27,13 @@ export function useStoreConfigQuery(storeCode: StoreCode) {
           throw new Error("error" in data && data.error ? data.error : "店舗設定の取得に失敗しました");
         }
 
-        const selectedStore = data.stores.find((item) => item.code === storeCode);
+        const stores_ = (data as StoreConfigApiResponse).stores;
+        const selectedStore = stores_.find((item) => item.code === storeCode);
         if (!selectedStore) {
           throw new Error(`Store config not found: ${storeCode}`);
         }
 
-        setStores(data.stores.map((item) => ({ code: item.code, name: item.name })));
+        setStores(stores_.map((item) => ({ code: item.code, name: item.name })));
         setStore(buildStoreConfigViewModel(selectedStore));
       } catch (caughtError) {
         if (controller.signal.aborted) {

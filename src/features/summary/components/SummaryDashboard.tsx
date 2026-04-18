@@ -4,13 +4,13 @@ import { useState } from "react";
 
 import { SummaryFilterPanel } from "@/src/features/filters/components/SummaryFilterPanel";
 import { createDefaultSummaryFilter } from "@/src/features/filters/lib/filter-schema";
-import {
-  buildSummaryDetailRows,
-} from "@/src/features/summary/lib/build-summary-chart-data";
+import { buildSummaryDetailRows } from "@/src/features/summary/lib/build-summary-chart-data";
 import { useSummaryQuery } from "@/src/features/summary/hooks/useSummaryQuery";
 import { KpiCards } from "@/src/features/summary/components/KpiCards";
 import { SummaryTable } from "@/src/features/summary/components/SummaryTable";
 import { MainComparisonArea } from "@/src/features/summary/components/MainComparisonArea";
+import { AnalysisCardsArea } from "@/src/features/summary/components/AnalysisCardsArea";
+import { formatPercent } from "@/src/lib/format/finance";
 import type { KpiCardData } from "@/src/features/summary/types";
 import type { SummaryMainSelection } from "@/src/features/summary/types";
 
@@ -21,12 +21,13 @@ type Props = {
 export function SummaryDashboard({ initialFiscalYear }: Props) {
   const [filter, setFilter] = useState(createDefaultSummaryFilter());
   const [selection, setSelection] = useState<SummaryMainSelection | null>(null);
+  const [tableMode, setTableMode] = useState<"global" | "selection">("global");
   const query = useSummaryQuery(filter);
 
   const cards: KpiCardData[] = (() => {
-    const salesTotal = query.records.reduce((sum, record) => sum + record.salesTotal, 0);
-    const expenseTotal = query.records.reduce((sum, record) => sum + record.expenseTotal, 0);
-    const profit = query.records.reduce((sum, record) => sum + record.profit, 0);
+    const salesTotal = query.records.reduce((sum, r) => sum + r.salesTotal, 0);
+    const expenseTotal = query.records.reduce((sum, r) => sum + r.expenseTotal, 0);
+    const profit = query.records.reduce((sum, r) => sum + r.profit, 0);
     const marginRate = salesTotal === 0 ? 0 : (profit / salesTotal) * 100;
 
     return [
@@ -46,7 +47,7 @@ export function SummaryDashboard({ initialFiscalYear }: Props) {
         id: "profit-total",
         label: "利益",
         value: profit,
-        helper: "売上と経費の差分です。店舗横断比較の主指標です。",
+        helper: "売上と経費の差分。店舗横断比較の主指標です。",
       },
       {
         id: "margin-rate",
@@ -57,10 +58,19 @@ export function SummaryDashboard({ initialFiscalYear }: Props) {
     ];
   })();
 
-  const detailRows = buildSummaryDetailRows(query.rows, selection);
+  const tableRows = buildSummaryDetailRows(
+    query.rows,
+    tableMode === "selection" ? selection : null,
+  );
+
+  function handleSelect(sel: SummaryMainSelection | null) {
+    setSelection(sel);
+    if (sel) setTableMode("selection");
+  }
 
   return (
     <div className="space-y-6">
+      {/* Page header */}
       <section className="panel rounded-[2rem] p-6">
         <p className="eyebrow">Summary</p>
         <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -68,21 +78,26 @@ export function SummaryDashboard({ initialFiscalYear }: Props) {
             <h1 className="text-3xl font-semibold tracking-tight">半期サマリ</h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--muted)]">
               店舗差異を吸収した後の共通フォーマットで、売上・経費・利益を比較します。
-              KPI、比較グラフ、一覧表を同じフィルタで同期させています。
+              KPI・比較グラフ・詳細表をフィルタで一括同期しています。
             </p>
           </div>
-          <div className={`status-badge ${query.error ? "status-warn" : "status-good"}`}>
-            {query.error ? "api error" : query.isLoading ? "loading" : "api connected"}
+          <div
+            className={`status-badge ${
+              query.error ? "status-warn" : query.isLoading ? "status-muted" : "status-good"
+            }`}
+          >
+            {query.error ? "api error" : query.isLoading ? "loading..." : "api connected"}
           </div>
         </div>
       </section>
 
-      {query.error ? (
-        <section className="panel rounded-[1.75rem] p-5 text-sm text-rose-700">
+      {query.error && (
+        <section className="panel rounded-[1.75rem] p-5 text-sm text-rose-700 bg-rose-50/60">
           {query.error}
         </section>
-      ) : null}
+      )}
 
+      {/* Global filter */}
       <SummaryFilterPanel
         filter={filter}
         fiscalYears={
@@ -93,29 +108,74 @@ export function SummaryDashboard({ initialFiscalYear }: Props) {
         onChange={setFilter}
       />
 
+      {/* KPI cards */}
       <KpiCards cards={cards} />
 
+      {/* Main comparison */}
       <MainComparisonArea
         records={query.records}
         availableStores={query.availableStores}
         metric={filter.metric}
-        onSelect={setSelection}
+        onSelect={handleSelect}
       />
 
+      {/* Analysis cards */}
+      <AnalysisCardsArea
+        records={query.records}
+        availableStores={query.availableStores}
+        availableFiscalYears={
+          query.availableFiscalYears.length > 0
+            ? query.availableFiscalYears
+            : [initialFiscalYear]
+        }
+      />
+
+      {/* Detail table */}
       <section className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <p className="eyebrow">Detail Table</p>
             <h2 className="mt-1 text-xl font-semibold">詳細一覧</h2>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              {selection
-                ? `${selection.storeCode} / ${selection.periodKey} / ${selection.label} を表示中`
-                : "現在のグローバル条件に一致するサマリ一覧を表示しています。"}
-            </p>
           </div>
-          <div className="status-badge status-muted">{detailRows.length} rows</div>
+
+          <div className="flex items-center gap-3">
+            {/* Table mode toggle */}
+            <div className="flex rounded-full border border-[var(--line)] overflow-hidden bg-white/70">
+              <button
+                type="button"
+                onClick={() => setTableMode("global")}
+                className={`px-3.5 py-1.5 text-sm font-medium transition ${
+                  tableMode === "global"
+                    ? "bg-[var(--ink)] text-white"
+                    : "text-[var(--muted)] hover:bg-black/5"
+                }`}
+              >
+                全体
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableMode("selection")}
+                disabled={!selection}
+                className={`px-3.5 py-1.5 text-sm font-medium transition ${
+                  tableMode === "selection"
+                    ? "bg-[var(--ink)] text-white"
+                    : "text-[var(--muted)] hover:bg-black/5 disabled:opacity-40"
+                }`}
+              >
+                選択中
+              </button>
+            </div>
+            <div className="status-badge status-muted">{tableRows.length} rows</div>
+          </div>
         </div>
-        <SummaryTable rows={detailRows} />
+
+        {tableMode === "selection" && selection && (
+          <p className="text-sm text-[var(--accent-strong)]">
+            {selection.storeCode} · {selection.periodKey} · {selection.label} のデータを表示中
+          </p>
+        )}
+
+        <SummaryTable rows={tableRows} />
       </section>
     </div>
   );

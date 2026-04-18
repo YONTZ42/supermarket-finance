@@ -1,4 +1,4 @@
-import { LineChart } from "@/src/components/charts";
+import { LineChartVisx } from "@/src/components/charts/visx/LineChartVisx";
 import type { LineChartPoint } from "@/src/types/chart";
 
 type Props = {
@@ -6,13 +6,15 @@ type Props = {
 };
 
 export function EntryTrendChart({ data }: Props) {
-  if (data.length === 0) {
-    return (
-      <div className="rounded-[1.5rem] border border-dashed border-[var(--line)] bg-white/60 p-6 text-sm text-[var(--muted)]">
-        入力済みデータがあると、期間ごとの推移をここに表示します。
-      </div>
-    );
-  }
-
-  return <LineChart data={data} yLabel="入力総額 推移" />;
+  return (
+    <div>
+      <p className="eyebrow mb-3">入力総額 推移</p>
+      <LineChartVisx
+        data={data}
+        yLabel="入力総額 推移"
+        color="#0e7490"
+        height={220}
+      />
+    </div>
+  );
 }

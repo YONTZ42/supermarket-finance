@@ -45,7 +45,7 @@ export function useRawRecordsQuery(
           throw new Error("error" in data && data.error ? data.error : "入力データの取得に失敗しました");
         }
 
-        setRecords(data.records);
+        setRecords((data as { records: RawRecord[] }).records);
       } catch (caughtError) {
         if (controller.signal.aborted) {
           return;

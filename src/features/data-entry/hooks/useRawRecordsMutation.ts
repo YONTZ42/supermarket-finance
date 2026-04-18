@@ -25,11 +25,12 @@ export function useRawRecordsMutation() {
         throw new Error("error" in data && data.error ? data.error : "入力データの保存に失敗しました");
       }
 
+      const result = data as UpsertRawRecordResponse;
       startTransition(() => {
-        setLastSavedAt(data.savedAt);
+        setLastSavedAt(result.savedAt);
       });
 
-      return data;
+      return result;
     } finally {
       startTransition(() => {
         setIsSaving(false);
